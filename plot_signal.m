@@ -2,13 +2,13 @@ clc
 clear
 close all
 
-file_name = 'Gyroscope_6.csv';
+Path = 'Good Recordings/8.5.Gyro.csv';
 
 % Read data from file
-[t,x,y,z] = read_data(file_name);
+[t,x,y,z] = read_data(Path);
 
 % Define sampling frequency
-if contains(file_name,'Gyro')
+if contains(Path,'Gyro')
     fs = 100; % Hz   
     y_label = 'Angular acceleration [deg/sec]';
 else
@@ -21,8 +21,8 @@ figure(1)
 hold on
 
 plot(t,x)
-%plot(t,y)
-%plot(t,z)
+plot(t,y)
+plot(t,z)
 
 title('Measurments as a function of time')
 xlabel('Time [sec]')
