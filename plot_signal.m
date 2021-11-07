@@ -9,7 +9,7 @@ Path = 'Good Recordings/8.5.Gyro.csv';
 
 % Define sampling frequency
 if contains(Path,'Gyro')
-    fs = 100; % Hz   
+    fs = 25; % Hz   
     y_label = 'Angular acceleration [deg/sec]';
 else
     fs = 25; % Hz
