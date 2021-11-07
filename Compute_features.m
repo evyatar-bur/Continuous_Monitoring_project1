@@ -2,7 +2,7 @@ clc
 clear
 close all
 
-Path = 'Good Recordings/8.5.Acc.csv';
+Path = 'Good Recordings/8.7.Acc.csv';
 
 % Read data from file
 [t,x,y,z] = read_data(Path);
