@@ -2,7 +2,7 @@ clc
 clear
 close all
 
-Path = 'Good Recordings/8.10.Acc.csv';
+Path = 'Good Recordings/8.12.Acc.csv';
 
 % Read data from file
 [t,x,y,z] = read_data(Path);
@@ -22,7 +22,7 @@ hold on
 
 plot(t,x)
 % plot(t,y)
-% plot(t,z)
+% plot(t,z)c xv c v cvcv xc xv
 
 title('Measurments as a function of time')
 xlabel('Time [sec]')
