@@ -4,35 +4,42 @@
 clc 
 clear
 
+window_size = 20;   % Sec
+over_lap = 10;      % Sec
+
 %% Section 1.a : Iterate to load files, extract features, and build matrix
 sample_rate=25;         % update according to true sample rate
+cd Good_Recordings
 d=dir('*.Acc.csv');
-X=zeros(10000,30)-99;    % Allocate memory for matrix X, with default value -99
-Y=zeros(10000,1)-99;    % Allocate memory for label vector Y
+X=zeros(10000,48)-99;    % Allocate memory for matrix X, with default value -99
+Y=zeros(10000,1)-99;     % Allocate memory for label vector Y
 n_instance=0;
 for r=1:length(d)
     A=readtable(d(r).name);
     gyro_file=strrep(d(r).name,'Acc','Gyro');
-    B=readtable(d(r).name);
-    label_file=strrep(d(r).name,'Acc','Label');
-    C=readtable(d(r).name);
+    B=readtable(gyro_file);
+    label_file=strrep(d(r).name,'Acc','Labels');
+    C=readtable(label_file);
     acc_x=A.x_axis_g_;
     acc_y=A.y_axis_g_;
     acc_z=A.z_axis_g_;
-    gyro_x=B.x_axis_g_;
-    gyro_y=B.y_axis_g_;
-    gyro_z=B.z_axis_g_;
+    gyro_x=B.x_axis_deg_s_;
+    gyro_y=B.y_axis_deg_s_;
+    gyro_z=B.z_axis_deg_s_;
+
     % for example - if window size is 30 seconds, and overlap is 15 seconds
-    n_segments=floor((length(acc_z)/sample_rate)/15)-1;
+    n_segments=floor((length(acc_z)/sample_rate)/over_lap)-1;
+
     for segment=1:n_segments
-        ind=(segment-1)*15*sample_rate+(1:(sample_rate*30));
-        X_row=extract_features_32132132(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
+        ind=(segment-1)*over_lap*sample_rate+(1:(sample_rate*window_size));
+        X_row=Window_features(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
         % replace ID number with your ID
         n_instance=n_instance+1;
         X(n_instance,:)=X_row;
-        Y(n_instance)=label_segment(C,segment);
+        Y(n_instance)=label_segment(C,ind);
     end
 end
+
 ind=find(Y~=-99);
 X=X(ind,:);
 Y=Y(ind,:);
