@@ -9,7 +9,7 @@ over_lap = 10;      % Sec
 
 %% Section 1.a : Iterate to load files, extract features, and build matrix
 sample_rate=25;         % update according to true sample rate
-cd Good_Recordings
+
 d=dir('*.Acc.csv');
 X=zeros(10000,48)-99;    % Allocate memory for matrix X, with default value -99
 Y=zeros(10000,1)-99;     % Allocate memory for label vector Y
@@ -44,8 +44,16 @@ ind=find(Y~=-99);
 X=X(ind,:);
 Y=Y(ind,:);
 
+X(:,7) = [];
+X(:,14) = [];
+X(:,21) = [];
+X(:,28) = [];
+X(:,35) = [];
+X(:,42) = [];
+
+
 %% Section 1.b. Features normalization/discretization remove outliers if needed
-X_norm=X;
+X_norm= normalize(X,1,"medianiqr");
 % update the above matrices after discretization
 disp('Features are after pre-processing! ')
 disp('------------------------------------------')
@@ -62,11 +70,27 @@ Y_test=Y;
 
 %% Section 1.d. remove correlated features
 
-% update the below sets
-X_training=X_norm;
-X_test=X_norm;
-Y_training=Y;
-Y_test=Y;
+for i= 1:size(X_norm,2)
+
+    if i<size(X_norm,2)
+
+        R = corrcoef(X_norm);
+        R = R(i,:);
+
+        ind = (R>0.7 & R~=1);
+
+        X_norm(:,ind) = [];
+    end
+end
+
+R = corrcoef(X_norm);    
+
+figure()
+heatmap(R(1:4,1:4))
+
+% figure()
+% gplotmatrix(X_norm);
+
 % End Section 1.d.
 
 
