@@ -1,7 +1,8 @@
 
 % CHANGE FILE NAME!!!
 % REPLACE ID NUMBER with YOUR ID
-
+clc 
+clear
 
 %% Section 1.a : Iterate to load files, extract features, and build matrix
 sample_rate=25;         % update according to true sample rate
