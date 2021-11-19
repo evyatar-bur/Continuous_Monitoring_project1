@@ -28,7 +28,7 @@ for r=1:length(d)
     gyro_z=B.z_axis_deg_s_;
 
     % for example - if window size is 30 seconds, and overlap is 15 seconds
-    n_segments=floor((length(acc_z)/sample_rate)/over_lap)-1;
+    n_segments=floor((length(gyro_z)/sample_rate)/over_lap)-1;
 
     for segment=1:n_segments
         ind=(segment-1)*over_lap*sample_rate+(1:(sample_rate*window_size));
