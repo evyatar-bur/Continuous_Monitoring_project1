@@ -62,13 +62,21 @@ disp('------------------------------------------')
 %% Section 1.c. set a training & Test sets
 
 % update the below sets
-X_training=X_norm;
-X_test=X_norm;
-Y_training=Y;
-Y_test=Y;
+X_training=X_norm(1:933,:);
+X_test=X_norm(934:end,:);
+Y_training=Y(1:933);
+Y_test=Y(934:end);
 % End Section 1.c.
 
 %% Section 1.d. remove correlated features
+
+feature_names = {'max_acc_x','max_ind_acc_x','min_acc_x','min_ind_acc_x','std_acc_x','median_acc_x','iqr_acc_x',...
+    'max_acc_y','max_ind_acc_y','min_acc_y','min_ind_acc_y','std_acc_y','median_acc_y','iqr_acc_y',...
+    'max_acc_z','max_ind_acc_z','min_acc_z','min_ind_acc_z','std_acc_z','median_acc_z','iqr_acc_z',...
+    'max_gyro_x','max_ind_gyro_x','min_gyro_x','min_ind_gyro_x','std_gyro_x','median_gyro_x','iqr_gyro_x',...
+    'max_gyro_y','max_ind_gyro_y','min_gyro_y','min_ind_gyro_y','std_gyro_y','median_gyro_y','iqr_gyro_y',...
+    'max_gyro_z','max_ind_gyro_z','min_gyro_z','min_ind_gyro_z','std_gyro_z','median_gyro_z','iqr_gyro_z'};
+
 
 for i= 1:size(X_norm,2)
 
@@ -80,33 +88,101 @@ for i= 1:size(X_norm,2)
         ind = (R>0.7 & R~=1);
 
         X_norm(:,ind) = [];
+        feature_names(ind) = [];
     end
 end
 
-R = corrcoef(X_norm);    
-
-figure()
-heatmap(R(1:4,1:4))
-
+% R = corrcoef(X_norm);    
+% 
 % figure()
-% gplotmatrix(X_norm);
+% heatmap(R(1:4,1:4))
+
+%%% GPLOT - DELETE %%%
+
+% action/no action classification
+% y_tag = (Y~=0);
+% 
+% figure()
+% gplotmatrix(X_norm(:,1:5),[],y_tag);
+% 
+% figure()
+% gplotmatrix(X_norm(:,6:10),[],y_tag);
+% 
+% figure()
+% gplotmatrix(X_norm(:,11:15),[],y_tag);
+% 
+% figure()
+% gplotmatrix(X_norm(:,16:20),[],y_tag);
+% 
+% figure()
+% gplotmatrix(X_norm(:,21:24),[],y_tag);
+% 
+% figure()
+% gplotmatrix(X_norm(:,25:28),[],y_tag);
+
+%%% GPLOT - DELETE %%%
 
 % End Section 1.d.
 
 
 %% Section 2.a. Select the best feature
+
+best_AUC = 0;
 best_feature=[];
+
+for i = size(X_norm,2):-1:1
+    
+    train_data = X_training(:,i);
+    test_data = X_test(:,i);
+
+    model=fitensemble(train_data,Y_training,'Bag',100,'Tree','Type','classification');
+
+    prediction = predict(model,test_data);
+
+    [~,~,~,AUC] = perfcurve(Y_test,prediction,0);
+    
+    if AUC>best_AUC
+        
+        best_AUC = AUC;
+        best_feature = i;
+
+    end
+end
+
+
 % update the above parameter based on a criterion you choose to select the
 % best feature
-disp(['The best features is number: ',num2str(best_feature)])
+disp(['The best features is number: ',num2str(best_feature),' - ',feature_names{best_feature}])
+disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
 % End Section 2.a.
 
 %% Section 2.b. Select the next best feature that is best together with the first feature
 best_2_features=[best_feature,0];
+
+for i = 1:size(X_norm,2)
+    
+    train_data = X_training(:,[best_feature i]);
+    test_data = X_test(:,[best_feature i]);
+
+    model=fitensemble(train_data,Y_training,'Bag',100,'Tree','Type','classification');
+
+    prediction = predict(model,test_data);
+
+    [~,~,~,AUC] = perfcurve(Y_test,prediction,0);
+    
+    if AUC>best_AUC
+        
+        best_AUC = AUC;
+        best_2_features(2) = i;
+
+    end
+end
+
 % Add your code above this line and update the above parameters based on
 % a criterion you choose to select the best features
-disp(['The best 2 features are numbers: ',num2str(best_2_features)])
+disp(['The best 2 features are numbers: ',num2str(best_2_features),' - ',feature_names{best_2_features}])
+disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
 % End Section 2.b.
 
