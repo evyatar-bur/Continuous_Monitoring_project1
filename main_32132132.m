@@ -40,17 +40,6 @@ for r=1:length(d)
     end
 end
 
-ind=find(Y~=-99);
-X=X(ind,:);
-Y=Y(ind,:);
-
-X(:,7) = [];
-X(:,14) = [];
-X(:,21) = [];
-X(:,28) = [];
-X(:,35) = [];
-X(:,42) = [];
-
 
 %% Section 1.b. Features normalization/discretization remove outliers if needed
 X_norm= normalize(X,1,"medianiqr");
@@ -75,14 +64,15 @@ Y_test=Y(test_ind);
 
 %% Section 1.d. remove correlated features
 
-feature_names = {'max_acc_x','max_ind_acc_x','min_acc_x','min_ind_acc_x','std_acc_x','median_acc_x','iqr_acc_x',...
-    'max_acc_y','max_ind_acc_y','min_acc_y','min_ind_acc_y','std_acc_y','median_acc_y','iqr_acc_y',...
-    'max_acc_z','max_ind_acc_z','min_acc_z','min_ind_acc_z','std_acc_z','median_acc_z','iqr_acc_z',...
-    'max_gyro_x','max_ind_gyro_x','min_gyro_x','min_ind_gyro_x','std_gyro_x','median_gyro_x','iqr_gyro_x',...
-    'max_gyro_y','max_ind_gyro_y','min_gyro_y','min_ind_gyro_y','std_gyro_y','median_gyro_y','iqr_gyro_y',...
-    'max_gyro_z','max_ind_gyro_z','min_gyro_z','min_ind_gyro_z','std_gyro_z','median_gyro_z','iqr_gyro_z'};
+feature_names = {'max_acc_x','max_ind_acc_x','min_acc_x','min_ind_acc_x','std_acc_x','median_acc_x','bandpower_acc_x','iqr_acc_x',...
+    'max_acc_y','max_ind_acc_y','min_acc_y','min_ind_acc_y','std_acc_y','median_acc_y','bandpower_acc_y','iqr_acc_y',...
+    'max_acc_z','max_ind_acc_z','min_acc_z','min_ind_acc_z','std_acc_z','median_acc_z','bandpower_acc_z','iqr_acc_z',...
+    'max_gyro_x','max_ind_gyro_x','min_gyro_x','min_ind_gyro_x','std_gyro_x','median_gyro_x','bandpower_gyro_x','iqr_gyro_x',...
+    'max_gyro_y','max_ind_gyro_y','min_gyro_y','min_ind_gyro_y','std_gyro_y','median_gyro_y','bandpower_gyro_y','iqr_gyro_y',...
+    'max_gyro_z','max_ind_gyro_z','min_gyro_z','min_ind_gyro_z','std_gyro_z','median_gyro_z','bandpower_gyro_z','iqr_gyro_z'};
 
 
+% Delete corralated features
 for i= 1:size(X_norm,2)
 
     if i<size(X_norm,2)
@@ -90,7 +80,7 @@ for i= 1:size(X_norm,2)
         R = corrcoef(X_norm);
         R = R(i,:);
 
-        ind = (R>0.7 & R~=1);
+        ind = (R>0.8 & R~=1);
 
         X_norm(:,ind) = [];
         feature_names(ind) = [];
@@ -140,7 +130,7 @@ for i = size(X_norm,2):-1:1
     train_data = X_training(:,i);
     test_data = X_test(:,i);
 
-    model=fitensemble(train_data,Y_training,'Bag',100,'Tree','Type','classification');
+    model = TreeBagger(50,train_data,Y_training,'OOBPrediction','On','Method','classification');
 
     prediction = predict(model,test_data);
 
