@@ -1,7 +1,7 @@
 clc
 clear
 
-file_name = 'Gyroscope_6.csv';
+file_name = '8.1.Gyro.csv';
 
 % Read datafrom file
 [t,x,y,z] = read_data(file_name);

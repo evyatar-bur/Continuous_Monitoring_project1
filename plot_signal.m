@@ -2,7 +2,7 @@ clc
 clear
 close all
 
-Path = 'Good Recordings/8.9.Acc.csv';
+Path = '8.9.Acc.csv';
 
 % Read data from file
 [t,x,y,z] = read_data(Path);
@@ -31,6 +31,30 @@ legend('x','y','z')
 
 max_val = max([max(x),max(y),max(z)]);
 
+x_freq=fft(x(430:450));
+x2_freq=fft(x(200:2202));
+L = length(x(430:450));
 
+figure(1)
 
+subplot(3,1,1)
+P2 = abs(x_freq/L);
+P1 = P2(1:L/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+
+f = 25*(0:(L/2))/L;
+plot(f,P1) 
+title('Single-Sided Amplitude Spectrum of X(t)')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
+
+subplot(3,1,2)
+P2 = abs(x2_freq/L);
+P1 = P2(1:L/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+f = 25*(0:(L/2))/L;
+plot(f,P1) 
+title('Single-Sided Amplitude Spectrum of Y(t)')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
 
