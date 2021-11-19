@@ -134,7 +134,7 @@ for i = size(X_norm,2):-1:1
 
     prediction = predict(model,test_data);
 
-    [~,~,~,AUC] = perfcurve(Y_test,prediction,0);
+    [~,~,~,AUC] = perfcurve(Y_test,cell2mat(prediction),'0');
     
     if AUC>best_AUC
         
