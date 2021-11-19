@@ -61,11 +61,16 @@ disp('------------------------------------------')
 
 %% Section 1.c. set a training & Test sets
 
+% Devide to 70% training 30% test
+train_size = size(X_norm,1);
+train_ind = 1:floor(train_size*0.7);
+test_ind = floor(train_size*0.7)+1:train_size;
+
 % update the below sets
-X_training=X_norm(1:933,:);
-X_test=X_norm(934:end,:);
-Y_training=Y(1:933);
-Y_test=Y(934:end);
+X_training=X_norm(train_ind,:);
+X_test=X_norm(test_ind,:);
+Y_training=Y(train_ind);
+Y_test=Y(test_ind);
 % End Section 1.c.
 
 %% Section 1.d. remove correlated features
@@ -158,7 +163,7 @@ disp('------------------------------------------')
 % End Section 2.a.
 
 %% Section 2.b. Select the next best feature that is best together with the first feature
-best_2_features=[best_feature,0];
+best_2_features=[best_feature];
 
 for i = 1:size(X_norm,2)
     
