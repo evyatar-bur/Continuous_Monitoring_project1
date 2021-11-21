@@ -85,10 +85,10 @@ for i= 1:size(X_norm,2)
 
     if i<size(X_norm,2)
 
-        R = corrcoef(X_norm);
+        R = corr(X_norm,'type','Spearman');
         R = R(i,:);
 
-        ind = (R>0.8 & R~=1);
+        ind = (R>0.7 & R~=1);
 
         X_norm(:,ind) = [];
         feature_names(ind) = [];
