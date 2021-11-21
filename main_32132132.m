@@ -34,8 +34,8 @@ for r=1:length(d)
     end
     
     % Moving window with over lap Predetermined
-    
-    n_segments=floor((length(N)/sample_rate)/over_lap)-1;
+
+    n_segments=floor((N/sample_rate)/over_lap)-1;
    
 
     for segment=1:n_segments
@@ -137,12 +137,14 @@ for i = size(X_norm,2):-1:1
     
     train_data = X_training(:,i);
     test_data = X_test(:,i);
+    
+    model=fitensemble(train_data,Y_training,'Bag',100,'Tree','Type','classification');
 
-    model = TreeBagger(50,train_data,Y_training,'OOBPrediction','On','Method','classification');
+    %    model = TreeBagger(50,train_data,Y_training,'OOBPrediction','On','Method','classification');
 
-    prediction = predict(model,test_data);
+    [prediction,scores] = predict(model,test_data);
 
-    [~,~,~,AUC] = perfcurve(Y_test,cell2mat(prediction),'0');
+    [~,~,~,AUC] = perfcurve(Y_test,scores(:,1),'0');
     
     if AUC>best_AUC
         
@@ -170,9 +172,10 @@ for i = 1:size(X_norm,2)
 
     model=fitensemble(train_data,Y_training,'Bag',100,'Tree','Type','classification');
 
-    prediction = predict(model,test_data);
+    [prediction,scores] = predict(model,test_data);
 
-    [~,~,~,AUC] = perfcurve(Y_test,prediction,0);
+    [~,~,~,AUC] = perfcurve(Y_test,scores(:,1),'0');
+   
     
     if AUC>best_AUC
         
