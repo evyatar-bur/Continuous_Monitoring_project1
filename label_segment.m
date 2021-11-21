@@ -7,7 +7,10 @@ label = 0;
 min_time = ind(1)/25;
 max_time = ind(end)/25;
 
-action_times = C(:,1).Variables;
+head=(C.Properties.VariableNames);
+[~,sec_ind]=sort(head);
+
+action_times = C(:,sec_ind(3)).Variables; %takes the correct col data
 labels = C.Label;
 
 for i=1:length(action_times)
