@@ -7,13 +7,18 @@ clear
 window_size = 20;   % Sec
 over_lap = 10;      % Sec
 
+% Suppress readtable warning
+warning('off','MATLAB:table:ModifiedAndSavedVarnames')
+
 %% Section 1.a : Iterate to load files, extract features, and build matrix
-sample_rate=25;         % update according to true sample rate
+sample_rate=25;      
 
 d=dir('*.Acc.csv');
-X=zeros(10000,48)-99;    % Allocate memory for matrix X, with default value -99
-Y=zeros(10000,1)-99;     % Allocate memory for label vector Y
-n_instance=0;
+X=zeros(50000,48)-99;    % Allocate memory for matrix X, with default value -99
+Y=zeros(50000,1)-99;     % Allocate memory for label vector Y
+
+n_instance=0; % Window counter
+
 for r=1:length(d)
     A=readtable(d(r).name);
     gyro_file=strrep(d(r).name,'Acc','Gyro');
@@ -32,31 +37,38 @@ for r=1:length(d)
     if length(gyro_x)<length(acc_x)
         N=length(gyro_x);
     end
-    
+
+    % Ignore recordings with significant difference between signal lengths
+    if abs(length(gyro_x)-length(acc_x))>500
+        disp(['Signal ignored - difference between signals is too large - ' d(r).name])
+        continue
+    end
+
     % Moving window with over lap Predetermined
-
     n_segments=floor((N/sample_rate)/over_lap)-1;
-   
-
+    
+    % Compute features for each window
     for segment=1:n_segments
         ind=(segment-1)*over_lap*sample_rate+(1:(sample_rate*window_size));
-        X_row=Window_features(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
-        % replace ID number with your ID
+        X_row = extract_features_32132132(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
+        
         n_instance=n_instance+1;
-        X(n_instance,:)=X_row;
-        Y(n_instance)=label_segment(C,ind);
+
+        X(n_instance,:) = X_row;
+        Y(n_instance) = label_segment(C,ind);
     end
 end
 
 
 %% Section 1.b. Features normalization/discretization remove outliers if needed
-X_norm= normalize(X,1,"medianiqr");
+X_norm = normalize(X,1,"medianiqr");
 % update the above matrices after discretization
+disp('------------------------------------------')
 disp('Features are after pre-processing! ')
 disp('------------------------------------------')
 % End Section 1.b.
 
-%% Section 1.c. set a training & Test sets
+%% Section 1.c. set training & Test sets
 
 % Devide to 70% training 30% test
 train_size = size(X_norm,1);
@@ -64,9 +76,9 @@ train_ind = 1:floor(train_size*0.7);
 test_ind = floor(train_size*0.7)+1:train_size;
 
 % update the below sets
-X_training=X_norm(train_ind,:);
+X_train=X_norm(train_ind,:);
 X_test=X_norm(test_ind,:);
-Y_training=Y(train_ind);
+Y_train=Y(train_ind);
 Y_test=Y(test_ind);
 % End Section 1.c.
 
@@ -81,113 +93,45 @@ feature_names = {'max_acc_x','max_ind_acc_x','min_acc_x','min_ind_acc_x','std_ac
 
 
 % Delete corralated features
-for i= 1:size(X_norm,2)
+for i= 1:size(X_train,2)
 
-    if i<size(X_norm,2)
+    if i<size(X_train,2)
 
-        R = corr(X_norm,'type','Spearman');
+        R = corr(X_train,'type','Spearman');
         R = R(i,:);
 
         ind = (R>0.7 & R~=1);
 
-        X_norm(:,ind) = [];
+        X_train(:,ind) = [];
+        X_test(:,ind) = [];
         feature_names(ind) = [];
     end
 end
-
-% R = corrcoef(X_norm);    
-% 
-% figure()
-% heatmap(R(1:4,1:4))
-
-%%% GPLOT - DELETE %%%
-
-% action/no action classification
-% y_tag = (Y~=0);
-% 
-% figure()
-% gplotmatrix(X_norm(:,1:5),[],y_tag);
-% 
-% figure()
-% gplotmatrix(X_norm(:,6:10),[],y_tag);
-% 
-% figure()
-% gplotmatrix(X_norm(:,11:15),[],y_tag);
-% 
-% figure()
-% gplotmatrix(X_norm(:,16:20),[],y_tag);
-% 
-% figure()
-% gplotmatrix(X_norm(:,21:24),[],y_tag);
-% 
-% figure()
-% gplotmatrix(X_norm(:,25:28),[],y_tag);
-
-%%% GPLOT - DELETE %%%
 
 % End Section 1.d.
 
 
 %% Section 2.a. Select the best feature
 
+best_feature_list = [];
 best_AUC = 0;
-best_feature=[];
 
-for i = size(X_norm,2):-1:1
-    
-    train_data = X_training(:,i);
-    test_data = X_test(:,i);
-    
-    model=fitensemble(train_data,Y_training,'Bag',100,'Tree','Type','classification');
-
-    %    model = TreeBagger(50,train_data,Y_training,'OOBPrediction','On','Method','classification');
-
-    [prediction,scores] = predict(model,test_data);
-
-    [~,~,~,AUC] = perfcurve(Y_test,scores(:,1),'0');
-    
-    if AUC>best_AUC
-        
-        best_AUC = AUC;
-        best_feature = i;
-
-    end
-end
-
+[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,'ROC');
 
 % update the above parameter based on a criterion you choose to select the
 % best feature
-disp(['The best features is number: ',num2str(best_feature),' - ',feature_names{best_feature}])
+disp(['The best feature is number: ',num2str(best_feature_list(1)),' - ',feature_names{best_feature_list(1)}])
 disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
-% End Section 2.a.
+
 
 %% Section 2.b. Select the next best feature that is best together with the first feature
-best_2_features=[best_feature];
 
-for i = 1:size(X_norm,2)
-    
-    train_data = X_training(:,[best_feature i]);
-    test_data = X_test(:,[best_feature i]);
-
-    model=fitensemble(train_data,Y_training,'Bag',100,'Tree','Type','classification');
-
-    [prediction,scores] = predict(model,test_data);
-
-    [~,~,~,AUC] = perfcurve(Y_test,scores(:,1),'0');
-   
-    
-    if AUC>best_AUC
-        
-        best_AUC = AUC;
-        best_2_features(2) = i;
-
-    end
-end
+[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,'ROC');
 
 % Add your code above this line and update the above parameters based on
 % a criterion you choose to select the best features
-disp(['The best 2 features are numbers: ',num2str(best_2_features),' - ',feature_names{best_2_features}])
+disp(['The second best feature is number: ',num2str(best_feature_list(2)),' - ',feature_names{best_feature_list(2)}])
 disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
 % End Section 2.b.
@@ -206,7 +150,7 @@ Ensemble_bagging_MDL=[];
 %% Section 5 display confusion matrix on test set
 
 % use predict with Ensemble_bagging_MDL
-confusion_mat=[]
+confusion_mat=[];
 % update the above parameter based on your calculations
 disp('------------------------------------------')
 % End Section 5.
