@@ -15,8 +15,10 @@ for i = 1:6
     start_ind = (i-1)*feature_num+1;
 
     % Compute and assign signal features
-    [features(start_ind),features(start_ind+1)] = max(signal);
-    [features(start_ind+2),features(start_ind+3)] = min(signal);
+    features(start_ind) = max(signal);
+    features(start_ind+1) = Our_zero_crossing(signal);
+    features(start_ind+2) = min(signal);
+    features(start_ind+3) = sum(abs(diff(signal)));
     features(start_ind+4) = std(signal);
     features(start_ind+5) = median(abs(signal));
     features(start_ind+6) = bandpower(signal,25,[0 12.5]);

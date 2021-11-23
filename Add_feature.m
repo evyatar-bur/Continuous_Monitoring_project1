@@ -2,9 +2,14 @@ function [best_feature_list,best_AUC] = Add_feature(X_training,X_test,Y_training
 % Add_features checks which feature needs to be added to get the best AUC
 
 prev_best_AUC = best_AUC;
+best_AUC = 0;
 
 % Iterate through features to find best one to add 
 for i = 1:size(X_training,2)
+
+    if ismember(i,best_feature_list)
+        continue
+    end
     
     % Use best features, along with feature i
     train_data = X_training(:,[best_feature_list i]);
@@ -39,9 +44,9 @@ for i = 1:size(X_training,2)
 end
 
 % Check if AUC improved significantly, if so - add best feature
-if best_AUC-prev_best_AUC>0.0001
+%if best_AUC-prev_best_AUC>0.0001
     best_feature_list(end+1) = best_feature_ind;
-else
-    disp('Best AUC not improved - Do not add more features')
+%else
+%    disp('Best AUC not improved - Do not add more features')
 
 end

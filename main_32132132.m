@@ -69,7 +69,7 @@ X = X(ind,:);
 Y = Y(ind,:);
 
 %% Section 1.b. Features normalization/discretization remove outliers if needed
-X_norm = normalize(X,1,"medianiqr");
+X_norm = normalize(X,1,'range',[0 1]);
 % update the above matrices after discretization
 disp('------------------------------------------')
 disp('Features are after pre-processing! ')
@@ -90,12 +90,12 @@ Y_test=Y(34030:end);
 
 %% Section 1.d. remove correlated features
 
-feature_names = {'max_acc_x','max_ind_acc_x','min_acc_x','min_ind_acc_x','std_acc_x','median_acc_x','bandpower_acc_x','iqr_acc_x',...
-    'max_acc_y','max_ind_acc_y','min_acc_y','min_ind_acc_y','std_acc_y','median_acc_y','bandpower_acc_y','iqr_acc_y',...
-    'max_acc_z','max_ind_acc_z','min_acc_z','min_ind_acc_z','std_acc_z','median_acc_z','bandpower_acc_z','iqr_acc_z',...
-    'max_gyro_x','max_ind_gyro_x','min_gyro_x','min_ind_gyro_x','std_gyro_x','median_gyro_x','bandpower_gyro_x','iqr_gyro_x',...
-    'max_gyro_y','max_ind_gyro_y','min_gyro_y','min_ind_gyro_y','std_gyro_y','median_gyro_y','bandpower_gyro_y','iqr_gyro_y',...
-    'max_gyro_z','max_ind_gyro_z','min_gyro_z','min_ind_gyro_z','std_gyro_z','median_gyro_z','bandpower_gyro_z','iqr_gyro_z'};
+feature_names = {'max_acc_x','zero_cross_acc_x','min_acc_x','diff_acc_x','std_acc_x','median_acc_x','bandpower_acc_x','iqr_acc_x',...
+    'max_acc_y','zero_cross_acc_y','min_acc_y','diff_acc_y','std_acc_y','median_acc_y','bandpower_acc_y','iqr_acc_y',...
+    'max_acc_z','zero_cross_acc_z','min_acc_z','diff_acc_z','std_acc_z','median_acc_z','bandpower_acc_z','iqr_acc_z',...
+    'max_gyro_x','zero_cross_gyro_x','min_gyro_x','diff_gyro_x','std_gyro_x','median_gyro_x','bandpower_gyro_x','iqr_gyro_x',...
+    'max_gyro_y','zero_cross_gyro_y','min_gyro_y','diff_gyro_y','std_gyro_y','median_gyro_y','bandpower_gyro_y','iqr_gyro_y',...
+    'max_gyro_z','zero_cross_gyro_z','min_gyro_z','diff_gyro_z','std_gyro_z','median_gyro_z','bandpower_gyro_z','iqr_gyro_z'};
 
 
 % Delete corralated features
@@ -106,10 +106,11 @@ for i= 1:size(X_train,2)
         R = corr(X_train,'type','Spearman');
         R = R(i,:);
 
-        ind = (R>0.7 & R~=1);
+        ind = (abs(R)>0.7 & R~=1);
 
         X_train(:,ind) = [];
         X_test(:,ind) = [];
+        X_norm(:,ind) = [];
         feature_names(ind) = [];
     end
 end
@@ -121,9 +122,9 @@ end
 
 best_feature_list = [];
 best_AUC = 0;
-method = 'PRC';
+method = 'ROC';
 
-[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,'PRC');
+[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
 
 % update the above parameter based on a criterion you choose to select the
 % best feature
@@ -134,7 +135,7 @@ disp('------------------------------------------')
 
 %% Section 2.b. Select the next best feature that is best together with the first feature
 
-[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,'PRC');
+[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
 
 % Add your code above this line and update the above parameters based on
 % a criterion you choose to select the best features
@@ -143,6 +144,15 @@ disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
 % End Section 2.b.
 
+for i = 1:4
+    [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
+
+    disp(['new AUC - ', num2str(best_AUC)])
+    disp(['new feature - ',feature_names{best_feature_list(end)}])
+
+end
+
+
 %% Section 2.c. display selected features
 
 % update below with graphic display, e.g. gplotmatrix
@@ -150,21 +160,30 @@ disp('------------------------------------------')
 % End Section 2.c.
 
 %% Section 4 Train ensemble models
-Ensemble_bagging_MDL=[];
+
+train_data = X_train(:,best_feature_list);
+test_data = X_test(:,best_feature_list);
+
+Ensemble_bagging_MDL=fitensemble(X_train,Y_train,'Bag',100,'Tree','Type','classification');
+
 % update the above parameter based on your calculations
 % End Section 4.
 
 %% Section 5 display confusion matrix on test set
 
+% Predict scores and predictions
+[prediction,scores] = predict(Ensemble_bagging_MDL,X_test);
+
 % use predict with Ensemble_bagging_MDL
-confusion_mat=[];
+[confusion_mat,order] = confusionmat(Y_test,prediction);
 % update the above parameter based on your calculations
 disp('------------------------------------------')
 % End Section 5.
 
 %% Section 6 display confusion matrix on test set
+Final_data = X_norm(:,best_feature_list);
 
-Ensemble_bagging_MDL_4submission=[];
+Ensemble_bagging_MDL_4submission= fitensemble(Final_data,Y,'Bag',100,'Tree','Type','classification');
 % update the above parameter based on all data
 disp('------------------------------------------')
 % End Section 6.
