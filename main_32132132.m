@@ -20,6 +20,9 @@ Y=zeros(50000,1)-99;     % Allocate memory for label vector Y
 n_instance=0; % Window counter
 
 for r=1:length(d)
+
+    disp(d(r).name)
+
     A=readtable(d(r).name);
     gyro_file=strrep(d(r).name,'Acc','Gyro');
     B=readtable(gyro_file);
@@ -31,6 +34,7 @@ for r=1:length(d)
     gyro_x=B.x_axis_deg_s_;
     gyro_y=B.y_axis_deg_s_;
     gyro_z=B.z_axis_deg_s_;
+
 
     % Check the minimum Length from the sensor
     N=length(acc_x);
@@ -59,6 +63,10 @@ for r=1:length(d)
     end
 end
 
+% Delete empty rows
+ind = find(Y~=-99);
+X = X(ind,:);
+Y = Y(ind,:);
 
 %% Section 1.b. Features normalization/discretization remove outliers if needed
 X_norm = normalize(X,1,"medianiqr");
@@ -70,16 +78,14 @@ disp('------------------------------------------')
 
 %% Section 1.c. set training & Test sets
 
-% Devide to 70% training 30% test
-train_size = size(X_norm,1);
-train_ind = 1:floor(train_size*0.7);
-test_ind = floor(train_size*0.7)+1:train_size;
+% Devide data to test and train - 8 last records are test data
 
 % update the below sets
-X_train=X_norm(train_ind,:);
-X_test=X_norm(test_ind,:);
-Y_train=Y(train_ind);
-Y_test=Y(test_ind);
+X_train=X_norm(1:34029,:);
+X_test=X_norm(34030:end,:);
+Y_train=Y(1:34029);
+Y_test=Y(34030:end);
+
 % End Section 1.c.
 
 %% Section 1.d. remove correlated features
@@ -115,8 +121,9 @@ end
 
 best_feature_list = [];
 best_AUC = 0;
+method = 'PRC';
 
-[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,'ROC');
+[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,'PRC');
 
 % update the above parameter based on a criterion you choose to select the
 % best feature
@@ -127,11 +134,11 @@ disp('------------------------------------------')
 
 %% Section 2.b. Select the next best feature that is best together with the first feature
 
-[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,'ROC');
+[best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,'PRC');
 
 % Add your code above this line and update the above parameters based on
 % a criterion you choose to select the best features
-disp(['The second best feature is number: ',num2str(best_feature_list(2)),' - ',feature_names{best_feature_list(2)}])
+disp(['The second best feature is number: ',num2str(best_feature_list(end)),' - ',feature_names{best_feature_list(end)}])
 disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
 % End Section 2.b.

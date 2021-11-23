@@ -1,7 +1,9 @@
 function features=extract_features_32132132(acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z)
 % This function recieves a window with six signals and returns the window's features
 
-features = zeros(1,48)-99;
+feature_num = 8;
+
+features = zeros(1,feature_num*6)-99;
 signals = {acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z};
 
 for i = 1:6
@@ -10,7 +12,7 @@ for i = 1:6
     signal = signals{i};
     
     % Set Starting index for current signal
-    start_ind = (i-1)*8+1;
+    start_ind = (i-1)*feature_num+1;
 
     % Compute and assign signal features
     [features(start_ind),features(start_ind+1)] = max(signal);
