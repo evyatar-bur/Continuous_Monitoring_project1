@@ -7,9 +7,6 @@ clear
 window_size = 20;   % Sec
 over_lap = 10;      % Sec
 
-tresh_diff=3;
-tresh_std=0.04;
-
 % Suppress readtable warning
 warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 
@@ -17,13 +14,18 @@ warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 sample_rate=25;      
 
 d=dir('*.Acc.csv');
-X_event=zeros(50000,48)-99;    % Allocate memory for matrix X, with default value -99
-Y_event=zeros(50000,1)-99;     % Allocate memory for label vector Y
-Y_check=zeros(50000,1)-99;
-Y_Real=zeros(50000,1)-99;
+X=zeros(50000,48)-99;    % Allocate memory for matrix X, with default value -99
+Y=zeros(50000,1)-99;     % Allocate memory for label vector Y
 
 n_instance=0; % Window counter
-n_instance_check = 0;
+
+
+% make a filter and apply it to the signal
+fco = 1;          % cutoff frequency (Hz)
+Np = 2;           % filter order=number of poles
+
+[b,a]=butter(Np,fco/(sample_rate/2),'high'); %high pass Butterworth filter coefficients
+
 
 for r=1:length(d)
 
@@ -40,7 +42,14 @@ for r=1:length(d)
     gyro_x=B.x_axis_deg_s_;
     gyro_y=B.y_axis_deg_s_;
     gyro_z=B.z_axis_deg_s_;
-
+    
+    %apply the filter
+    acc_x = filtfilt(b,a,acc_x); 
+    acc_y = filtfilt(b,a,acc_y);
+    acc_z = filtfilt(b,a,acc_z);
+    gyro_x = filtfilt(b,a,gyro_x);
+    gyro_y = filtfilt(b,a,gyro_y);
+    gyro_z = filtfilt(b,a,gyro_z);
 
     % Check the minimum Length from the sensor
     N=length(acc_x);
@@ -60,37 +69,22 @@ for r=1:length(d)
     % Compute features for each window
     for segment=1:n_segments
         ind=(segment-1)*over_lap*sample_rate+(1:(sample_rate*window_size));
-        window_diff=sum(abs(diff(acc_x(ind))));
-        window_std=std(acc_x(ind));
+        X_row = extract_features_204613681_308317361(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
         
-        n_instance_check=n_instance_check+1;
-        Y_check(n_instance_check) = 0;
+        n_instance=n_instance+1;
 
-        if window_diff>tresh_diff && window_std>tresh_std
-            X_row = extract_features_32132132(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
-            n_instance=n_instance+1;
-
-            X_event(n_instance,:) = X_row;
-            Y_event(n_instance) = label_segment(C,ind);
-            Y_check(n_instance_check) = 1;
-        end
-        Y_Real(n_instance_check)=label_segment(C,ind);
+        X(n_instance,:) = X_row;
+        Y(n_instance) = label_segment(C,ind);
     end
 end
 
 % Delete empty rows
-ind = find(Y_event~=-99);
-X_event = X_event(ind,:);
-Y_event = Y_event(ind,:);
-ind2=find(Y_Real~=-99);
-Y_Real=Y_Real(ind2,:);
-Y_check=Y_check(ind2,:);
-
-Y_Real(Y_Real ~= 0) = 1;
-
+ind = find(Y~=-99);
+X = X(ind,:);
+Y = Y(ind,:);
 
 %% Section 1.b. Features normalization/discretization remove outliers if needed
-X_norm = normalize(X_event,1,'range',[0 1]);
+X_norm = normalize(X,1,'medianiqr');   % DELETE!!! ,range',[0 1]); DELETE!!!
 % update the above matrices after discretization
 disp('------------------------------------------')
 disp('Features are after pre-processing! ')
@@ -104,8 +98,8 @@ disp('------------------------------------------')
 % update the below sets
 X_train=X_norm(1:34029,:);
 X_test=X_norm(34030:end,:);
-Y_train=Y_event(1:34029);
-Y_test=Y_event(34030:end);
+Y_train=Y(1:34029);
+Y_test=Y(34030:end);
 
 % End Section 1.c.
 
@@ -196,15 +190,15 @@ Ensemble_bagging_MDL=fitensemble(X_train,Y_train,'Bag',100,'Tree','Type','classi
 [prediction,scores] = predict(Ensemble_bagging_MDL,X_test);
 
 % use predict with Ensemble_bagging_MDL
-[confusion_mat,order] = confusionmat(Y_test,prediction);
+[confusion_mat,~] = confusionmat(Y_test,prediction)
 % update the above parameter based on your calculations
 disp('------------------------------------------')
 % End Section 5.
 
-%% Section 6 display confusion matrix on test set
+%% Section 6 - Create final model for submission
 Final_data = X_norm(:,best_feature_list);
 
-Ensemble_bagging_MDL_4submission= fitensemble(Final_data,Y_event,'Bag',100,'Tree','Type','classification');
+Ensemble_bagging_MDL_4submission= fitensemble(Final_data,Y,'Bag',100,'Tree','Type','classification');
 % update the above parameter based on all data
 disp('------------------------------------------')
 % End Section 6.

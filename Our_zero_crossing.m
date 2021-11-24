@@ -5,6 +5,6 @@ pos = Window>0;
 
 changes = xor(pos(1:end-1),pos(2:end));
 
-zero_cross = sum(changes) + 1;
+zero_cross = sum(changes);
 
 end

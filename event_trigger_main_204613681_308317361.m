@@ -1,28 +1,33 @@
-
-% CHANGE FILE NAME!!!
-% REPLACE ID NUMBER with YOUR ID
 clc 
 clear
 
 window_size = 20;   % Sec
 over_lap = 10;      % Sec
 
+tresh_diff = 3;
+tresh_std = 0.04;
+
 % Suppress readtable warning
 warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 
 %% Section 1.a : Iterate to load files, extract features, and build matrix
-sample_rate=25;      
+sample_rate = 25;      
 
-d=dir('*.Acc.csv');
-X=zeros(50000,48)-99;    % Allocate memory for matrix X, with default value -99
-Y=zeros(50000,1)-99;     % Allocate memory for label vector Y
+d = dir('*.Acc.csv');
 
-n_instance=0; % Window counter
+X_event = zeros(50000,48)-99;    % Allocate memory for matrix X, with default value -99
+Y_event = zeros(50000,1)-99;     % Allocate memory for label vector Y
+Y_check = zeros(50000,1)-99;
+Y_Real = zeros(50000,1)-99;
+
+n_instance = 0; % Window counter
+n_instance_check = 0;
 
 for r=1:length(d)
 
     disp(d(r).name)
-
+    
+    % Read data from .csv files
     A=readtable(d(r).name);
     gyro_file=strrep(d(r).name,'Acc','Gyro');
     B=readtable(gyro_file);
@@ -35,11 +40,11 @@ for r=1:length(d)
     gyro_y=B.y_axis_deg_s_;
     gyro_z=B.z_axis_deg_s_;
 
-
     % Check the minimum Length from the sensor
-    N=length(acc_x);
+    N = length(acc_x);
+
     if length(gyro_x)<length(acc_x)
-        N=length(gyro_x);
+        N = length(gyro_x);
     end
 
     % Ignore recordings with significant difference between signal lengths
@@ -54,22 +59,38 @@ for r=1:length(d)
     % Compute features for each window
     for segment=1:n_segments
         ind=(segment-1)*over_lap*sample_rate+(1:(sample_rate*window_size));
-        X_row = extract_features_32132132(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
+        window_diff=sum(abs(diff(acc_x(ind))));
+        window_std=std(acc_x(ind));
         
-        n_instance=n_instance+1;
+        n_instance_check = n_instance_check+1;
+        Y_check(n_instance_check) = 0;
 
-        X(n_instance,:) = X_row;
-        Y(n_instance) = label_segment(C,ind);
+        if window_diff>tresh_diff && window_std>tresh_std
+
+            X_row = extract_features_204613681_308317361(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
+            n_instance=n_instance+1;
+
+            X_event(n_instance,:) = X_row;
+            Y_event(n_instance) = label_segment(C,ind);
+            Y_check(n_instance_check) = 1;
+        end
+        Y_Real(n_instance_check) = label_segment(C,ind);
     end
 end
 
 % Delete empty rows
-ind = find(Y~=-99);
-X = X(ind,:);
-Y = Y(ind,:);
+ind = find(Y_event~=-99);
+X_event = X_event(ind,:);
+Y_event = Y_event(ind,:);
+ind2=find(Y_Real~=-99);
+Y_Real=Y_Real(ind2,:);
+Y_check=Y_check(ind2,:);
+
+Y_Real(Y_Real ~= 0) = 1;
+
 
 %% Section 1.b. Features normalization/discretization remove outliers if needed
-X_norm = normalize(X,1,'range',[0 1]);
+X_norm = normalize(X_event,1,'range',[0 1]);
 % update the above matrices after discretization
 disp('------------------------------------------')
 disp('Features are after pre-processing! ')
@@ -78,13 +99,13 @@ disp('------------------------------------------')
 
 %% Section 1.c. set training & Test sets
 
-% Devide data to test and train - 8 last records are test data
+% Devide data to test and train - 8 last groups are test data
 
 % update the below sets
 X_train=X_norm(1:34029,:);
 X_test=X_norm(34030:end,:);
-Y_train=Y(1:34029);
-Y_test=Y(34030:end);
+Y_train=Y_event(1:34029);
+Y_test=Y_event(34030:end);
 
 % End Section 1.c.
 
@@ -175,7 +196,7 @@ Ensemble_bagging_MDL=fitensemble(X_train,Y_train,'Bag',100,'Tree','Type','classi
 [prediction,scores] = predict(Ensemble_bagging_MDL,X_test);
 
 % use predict with Ensemble_bagging_MDL
-[confusion_mat,order] = confusionmat(Y_test,prediction);
+[confusion_mat,order] = confusionmat(Y_test,prediction)
 % update the above parameter based on your calculations
 disp('------------------------------------------')
 % End Section 5.
@@ -183,7 +204,7 @@ disp('------------------------------------------')
 %% Section 6 display confusion matrix on test set
 Final_data = X_norm(:,best_feature_list);
 
-Ensemble_bagging_MDL_4submission= fitensemble(Final_data,Y,'Bag',100,'Tree','Type','classification');
+Ensemble_bagging_MDL_4submission= fitensemble(Final_data,Y_event,'Bag',100,'Tree','Type','classification');
 % update the above parameter based on all data
 disp('------------------------------------------')
 % End Section 6.

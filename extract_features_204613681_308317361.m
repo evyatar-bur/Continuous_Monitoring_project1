@@ -1,4 +1,4 @@
-function features=extract_features_32132132(acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z)
+function features=extract_features_204613681_308317361(acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z)
 % This function recieves a window with six signals and returns the window's features
 
 feature_num = 8;
