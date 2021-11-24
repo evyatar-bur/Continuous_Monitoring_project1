@@ -43,13 +43,10 @@ for r=1:length(d)
     gyro_y=B.y_axis_deg_s_;
     gyro_z=B.z_axis_deg_s_;
     
-    %apply the filter
+    % apply the filter
     acc_x = filtfilt(b,a,acc_x); 
     acc_y = filtfilt(b,a,acc_y);
     acc_z = filtfilt(b,a,acc_z);
-    gyro_x = filtfilt(b,a,gyro_x);
-    gyro_y = filtfilt(b,a,gyro_y);
-    gyro_z = filtfilt(b,a,gyro_z);
 
     % Check the minimum Length from the sensor
     N=length(acc_x);
@@ -113,8 +110,21 @@ feature_names = {'max_acc_x','zero_cross_acc_x','min_acc_x','diff_acc_x','std_ac
     'max_gyro_z','zero_cross_gyro_z','min_gyro_z','diff_gyro_z','std_gyro_z','median_gyro_z','bandpower_gyro_z','iqr_gyro_z'};
 
 
+len = size(X_train,2);
+W = zeros(len,1);
+for j=1:len
+    [ind,W(j)] = relieff(X_train(:,j),Y_train,10);
+end
+
+
+
+X_train = X_train(:,ind);
+X_test = X_test(:,ind);
+X_norm = X_norm(:,ind);
+feature_names = feature_names(ind);
+
 % Delete corralated features
-for i= 1:size(X_train,2)
+for i = 1:size(X_train,2)
 
     if i<size(X_train,2)
 
@@ -129,6 +139,7 @@ for i= 1:size(X_train,2)
         feature_names(ind) = [];
     end
 end
+
 
 % End Section 1.d.
 
@@ -159,13 +170,13 @@ disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
 % End Section 2.b.
 
-for i = 1:4
-    [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
-
-    disp(['new AUC - ', num2str(best_AUC)])
-    disp(['new feature - ',feature_names{best_feature_list(end)}])
-
-end
+% for i = 1:3
+%     [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
+% 
+%     disp(['new AUC - ', num2str(best_AUC)])
+%     disp(['new feature - ',feature_names{best_feature_list(end)}])
+% 
+% end
 
 
 %% Section 2.c. display selected features

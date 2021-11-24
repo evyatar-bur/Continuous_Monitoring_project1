@@ -2,7 +2,7 @@ clc
 % clear
 close all
 
-Path = '4.6.Acc.csv';
+Path = '8.1.Acc.csv';
 
 % Read data from file
 [t,x,y,z] = read_data(Path);
