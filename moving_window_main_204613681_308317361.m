@@ -113,8 +113,10 @@ feature_names = {'max_acc_x','zero_cross_acc_x','min_acc_x','diff_acc_x','std_ac
 len = size(X_train,2);
 W = zeros(len,1);
 for j=1:len
-    [ind,W(j)] = relieff(X_train(:,j),Y_train,10);
+    [~,W(j)] = relieff(X_train(:,j),Y_train,10);
 end
+
+[~,ind] = sort(W);
 
 
 
@@ -139,6 +141,8 @@ for i = 1:size(X_train,2)
         feature_names(ind) = [];
     end
 end
+
+
 
 
 % End Section 1.d.
