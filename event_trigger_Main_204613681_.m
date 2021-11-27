@@ -240,7 +240,7 @@ disp('------------------------------------------')
 close all
 % Visualize correlation between features
 figure()
-corrplot([X_norm Y_event],'type','Spearman','testR','on','varNames',[feature_names {'Labels'}])
+corrplot([X_norm Y_event],'type','Spearman','testR','on')
 title('correlation between features - all lowly correlated features')
 
 % Visualize correlation of 2 best features
@@ -250,7 +250,7 @@ title('correlation between features - 2 best features')
 
 % Gplotmatrix - all features
 figure()
-gplotmatrix(X_norm,[],Y_event,[],[],[],[],[],feature_names)
+gplotmatrix(X_norm,[],Y_event)
 title('Gplotmatrix - all lowly correlated features')
 
 % Gplotmatrix - 2 best features

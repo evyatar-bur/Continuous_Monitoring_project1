@@ -153,7 +153,7 @@ end
 
 best_feature_list = [];
 best_AUC = 0;
-method = 'ROC';
+method = 'PRC'; % 'F1', 'ROC' or 'PRC'
 
 [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
 
@@ -174,15 +174,6 @@ disp(['The second best feature is number: ',num2str(best_feature_list(end)),' - 
 disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
 % End Section 2.b.
-
-% for i = 1:3
-%     [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
-% 
-%     disp(['new AUC - ', num2str(best_AUC)])
-%     disp(['new feature - ',feature_names{best_feature_list(end)}])
-% 
-% end
-
 
 %% Section 2.c. display selected features
 
@@ -234,7 +225,7 @@ title('correlation between features - 2 best features')
 
 % Gplotmatrix - all features
 figure()
-gplotmatrix(X_norm,[],Y,[],[],[],[],[],feature_names)
+gplotmatrix(X_norm,[],Y)
 title('Gplotmatrix - all lowly correlated features')
 
 % Gplotmatrix - 2 best features
