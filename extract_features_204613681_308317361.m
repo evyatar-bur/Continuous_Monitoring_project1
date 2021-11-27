@@ -22,7 +22,7 @@ for i = 1:6
     features(start_ind+4) = std(signal);
     features(start_ind+5) = median(abs(signal));
     features(start_ind+6) = bandpower(signal,25,[0 12.5]);
-    features(start_ind+7) = iqr(timeseries(signal));
+    features(start_ind+7) = max(signal) - min(signal);    %iqr(timeseries(signal));
 
 end
 

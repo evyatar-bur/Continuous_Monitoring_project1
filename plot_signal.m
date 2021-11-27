@@ -1,8 +1,8 @@
 clc
-% clear
+clear
 close all
 
-Path = '24.1.Acc.csv';
+Path = '24.1.Gyro.csv';
 
 % Read data from file
 [t,x,y,z] = read_data(Path);
@@ -32,7 +32,7 @@ legend('x')
 
 
 % make a filter and apply it to the signal
-fco=1;          %cutoff frequency (Hz)
+fco=0.1;          %cutoff frequency (Hz)
 Np=2;           %filter order=number of poles
 
 [b,a]=butter(Np,fco/(fs/2),'high'); %high pass Butterworth filter coefficients

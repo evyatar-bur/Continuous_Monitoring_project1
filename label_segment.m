@@ -1,11 +1,11 @@
-function [label] = label_segment(C,ind)
+function [label] = label_segment(C,ind,N)
 % Label window according to labels file
 
 label = 0;
 
 % Time boundaries
-min_time = ind(1)/25 -5 ;
-max_time = ind(end)/25 -3 ;
+min_time = ind(1)/25 -(ind(1)/N)*7 ;
+max_time = ind(end)/25 -(ind(1)/N)*3 ;
 
 % Sort column by names to overcome different column names
 head = (C.Properties.VariableNames);

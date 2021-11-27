@@ -21,7 +21,7 @@ n_instance=0; % Window counter
 
 
 % make a filter and apply it to the signal
-fco = 1;          % cutoff frequency (Hz)
+fco = 0.1;          % cutoff frequency (Hz)
 Np = 2;           % filter order=number of poles
 
 [b,a]=butter(Np,fco/(sample_rate/2),'high'); %high pass Butterworth filter coefficients
@@ -71,7 +71,7 @@ for r=1:length(d)
         n_instance=n_instance+1;
 
         X(n_instance,:) = X_row;
-        Y(n_instance) = label_segment(C,ind);
+        Y(n_instance) = label_segment(C,ind,N);
     end
 end
 
@@ -102,26 +102,29 @@ Y_test=Y(34030:end);
 
 %% Section 1.d. remove correlated features
 
-feature_names = {'max_acc_x','zero_cross_acc_x','min_acc_x','diff_acc_x','std_acc_x','median_acc_x','bandpower_acc_x','iqr_acc_x',...
-    'max_acc_y','zero_cross_acc_y','min_acc_y','diff_acc_y','std_acc_y','median_acc_y','bandpower_acc_y','iqr_acc_y',...
-    'max_acc_z','zero_cross_acc_z','min_acc_z','diff_acc_z','std_acc_z','median_acc_z','bandpower_acc_z','iqr_acc_z',...
-    'max_gyro_x','zero_cross_gyro_x','min_gyro_x','diff_gyro_x','std_gyro_x','median_gyro_x','bandpower_gyro_x','iqr_gyro_x',...
-    'max_gyro_y','zero_cross_gyro_y','min_gyro_y','diff_gyro_y','std_gyro_y','median_gyro_y','bandpower_gyro_y','iqr_gyro_y',...
-    'max_gyro_z','zero_cross_gyro_z','min_gyro_z','diff_gyro_z','std_gyro_z','median_gyro_z','bandpower_gyro_z','iqr_gyro_z'};
+feature_names = {'max acc x','zero cross acc x','min acc x','diff acc x','std acc x','median acc x','bandpower acc x','iqr acc x',...
+    'max acc y','zero cross acc y','min acc y','diff acc y','std acc y','median acc y','bandpower acc y','iqr acc y',...
+    'max acc z','zero cross acc z','min acc z','diff acc z','std acc z','median acc z','bandpower acc z','iqr acc z',...
+    'max gyro x','zero cross gyro x','min gyro x','diff gyro x','std gyro x','median gyro x','bandpower gyro x','iqr gyro x',...
+    'max gyro y','zero cross gyro y','min gyro y','diff gyro y','std gyro y','median gyro y','bandpower gyro y','iqr gyro y',...
+    'max gyro z','zero cross gyro z','min gyro z','diff gyro z','std gyro z','median gyro z','bandpower gyro z','iqr gyro z'};
 
+
+Y_train_hat = (Y_train ~= 0);
 
 len = size(X_train,2);
 W = zeros(len,1);
 for j=1:len
-    [~,W(j)] = relieff(X_train(:,j),Y_train,10);
+    [~,W(j)] = relieff(X_train(:,j),Y_train_hat,10);
 end
 
-[~,ind] = sort(W);
+[~,ind] = sort(W,'descend');
 
 X_train = X_train(:,ind);
 X_test = X_test(:,ind);
 X_norm = X_norm(:,ind);
 feature_names = feature_names(ind);
+W = W(ind);
 
 % Delete corralated features
 for i = 1:size(X_train,2)
@@ -137,9 +140,9 @@ for i = 1:size(X_train,2)
         X_test(:,ind) = [];
         X_norm(:,ind) = [];
         feature_names(ind) = [];
+        W(ind) = [];
     end
 end
-
 
 
 
@@ -215,3 +218,29 @@ Ensemble_bagging_MDL_4submission= fitensemble(Final_data,Y,'Bag',100,'Tree','Typ
 % update the above parameter based on all data
 disp('------------------------------------------')
 % End Section 6.
+
+%% Visualization 
+
+close all
+% Visualize correlation between features
+figure()
+corrplot([X_norm Y],'type','Spearman','testR','on','varNames',[feature_names {'Labels'}])
+title('correlation between features - all lowly correlated features')
+
+% Visualize correlation of 2 best features
+figure()
+corrplot([X_norm(:,best_feature_list) Y],'type','Spearman','testR','on','varNames',[feature_names(best_feature_list) {'Labels'}])
+title('correlation between features - 2 best features')
+
+% Gplotmatrix - all features
+figure()
+gplotmatrix(X_norm,[],Y,[],[],[],[],[],feature_names)
+title('Gplotmatrix - all lowly correlated features')
+
+% Gplotmatrix - 2 best features
+figure()
+gplotmatrix(X_norm(:,best_feature_list),[], Y,[],[],[],[],[],feature_names(best_feature_list))
+title('Gplotmatrix - 2 best features')
+
+
+
