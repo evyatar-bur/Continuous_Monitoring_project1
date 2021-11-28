@@ -1,5 +1,5 @@
-clc
-clear
+% clc
+% clear
 close all
 
 Path = '24.6.Acc.csv';
