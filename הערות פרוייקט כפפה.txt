@@ -29,6 +29,8 @@ skeweness ?
 
 Gini impurity loss?
 
+כמות הדגימות מעל ערך מסויים?
+
 
 
 
