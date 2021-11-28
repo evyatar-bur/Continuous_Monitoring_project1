@@ -1,8 +1,8 @@
-clc
-clear
+% clc
+% clear
 close all
 
-Path = '24.1.Gyro.csv';
+Path = '24.6.Acc.csv';
 
 % Read data from file
 [t,x,y,z] = read_data(Path);

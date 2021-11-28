@@ -153,7 +153,7 @@ end
 
 best_feature_list = [];
 best_AUC = 0;
-method = 'PRC'; % 'F1', 'ROC' or 'PRC'
+method = 'ROC'; % 'F1', 'ROC' or 'PRC'
 
 [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
 
