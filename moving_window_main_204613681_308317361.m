@@ -14,7 +14,7 @@ warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 sample_rate=25;      
 
 d=dir('*.Acc.csv');
-X=zeros(50000,48)-99;    % Allocate memory for matrix X, with default value -99
+X=zeros(50000,54)-99;    % Allocate memory for matrix X, with default value -99
 Y=zeros(50000,1)-99;     % Allocate memory for label vector Y
 
 n_instance=0; % Window counter
@@ -102,12 +102,12 @@ Y_test=Y(34030:end);
 
 %% Section 1.d. remove correlated features
 
-feature_names = {'max acc x','zero cross acc x','min acc x','diff acc x','std acc x','median acc x','bandpower acc x','iqr acc x',...
-    'max acc y','zero cross acc y','min acc y','diff acc y','std acc y','median acc y','bandpower acc y','iqr acc y',...
-    'max acc z','zero cross acc z','min acc z','diff acc z','std acc z','median acc z','bandpower acc z','iqr acc z',...
-    'max gyro x','zero cross gyro x','min gyro x','diff gyro x','std gyro x','median gyro x','bandpower gyro x','iqr gyro x',...
-    'max gyro y','zero cross gyro y','min gyro y','diff gyro y','std gyro y','median gyro y','bandpower gyro y','iqr gyro y',...
-    'max gyro z','zero cross gyro z','min gyro z','diff gyro z','std gyro z','median gyro z','bandpower gyro z','iqr gyro z'};
+feature_names = {'max acc x','zero cross acc x','min acc x','diff acc x','std acc x','median acc x','bandpower acc x','iqr acc x','skewness a x',...
+    'max acc y','zero cross acc y','min acc y','diff acc y','std acc y','median acc y','bandpower acc y','iqr acc y','skewness a y',...
+    'max acc z','zero cross acc z','min acc z','diff acc z','std acc z','median acc z','bandpower acc z','iqr acc z','skewness a z',...
+    'max gyro x','zero cross gyro x','min gyro x','diff gyro x','std gyro x','median gyro x','bandpower gyro x','iqr gyro x','skewness g x',...
+    'max gyro y','zero cross gyro y','min gyro y','diff gyro y','std gyro y','median gyro y','bandpower gyro y','iqr gyro y','skewness g y',...
+    'max gyro z','zero cross gyro z','min gyro z','diff gyro z','std gyro z','median gyro z','bandpower gyro z','iqr gyro z','skewness g z'};
 
 
 Y_train_hat = (Y_train ~= 0);
@@ -173,6 +173,15 @@ disp('------------------------------------------')
 disp(['The second best feature is number: ',num2str(best_feature_list(end)),' - ',feature_names{best_feature_list(end)}])
 disp(['The best AUC is: ',num2str(best_AUC)])
 disp('------------------------------------------')
+
+%% Add more features
+
+for i = 1:5
+
+    [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
+
+end
+
 % End Section 2.b.
 
 %% Section 2.c. display selected features
