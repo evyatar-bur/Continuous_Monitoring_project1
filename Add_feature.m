@@ -16,7 +16,9 @@ for i = 1:size(X_training,2)
     test_data = X_test(:,[best_feature_list i]);
     
     % Train model
-    model=fitensemble(train_data,Y_training,'Bag',100,'Tree','Type','classification');
+    t = templateTree('MaxNumSplits',10);
+
+    model=fitcensemble(train_data,Y_training,'method','RUSBoost','NumLearningCycles',100,'Learners',t,'LearnRate',0.1);
     
     % Predict scores
     [prediction,scores] = predict(model,test_data);
@@ -30,15 +32,8 @@ for i = 1:size(X_training,2)
         [~,~,~,score] = perfcurve(Y_test,scores(:,1),'0','XCrit','tpr','YCrit','ppv');
 
     elseif strcmp(metric,'F1')
-        % Compute f1 score
-        tp = sum((prediction ~= 0) & (Y_test ~= 0));
-        fp = sum((prediction ~= 0) & (Y_test == 0));
-        fn = sum((prediction == 0) & (Y_test ~= 0));
 
-        precision = tp / (tp + fp);
-        recall = tp / (tp + fn);
-        score = (2 * precision * recall) / (precision + recall);
-
+        score = F1_score(prediction,Y_test);
 
     else
         disp("Unknown metric - choose 'ROC','F1 or 'PRC' ")
@@ -59,5 +54,8 @@ end
     best_feature_list(end+1) = best_feature_ind;
 %else
 %    disp('Best AUC not improved - Do not add more features')
+
+
+disp(['best score - ',num2str(best_score)])
 
 end

@@ -1,6 +1,4 @@
 
-% CHANGE FILE NAME!!!
-% REPLACE ID NUMBER with YOUR ID
 clc 
 clear
 
@@ -151,9 +149,10 @@ end
 
 %% Section 2.a. Select the best feature
 
+
 best_feature_list = [];
 best_AUC = 0;
-method = 'ROC'; % 'F1', 'ROC' or 'PRC'
+method = 'F1'; % 'F1', 'ROC' or 'PRC'
 
 [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
 
@@ -176,7 +175,7 @@ disp('------------------------------------------')
 
 %% Add more features
 
-for i = 1:5
+for i = 1:2
 
     [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
 
@@ -195,7 +194,9 @@ end
 train_data = X_train(:,best_feature_list);
 test_data = X_test(:,best_feature_list);
 
-Ensemble_bagging_MDL=fitensemble(X_train,Y_train,'Bag',100,'Tree','Type','classification');
+t = templateTree('MaxNumSplits',1000);
+
+Ensemble_bagging_MDL=fitcensemble(train_data,Y_train,'method','RUSBoost','NumLearningCycles',1000,'Learners',t,'LearnRate',0.1);
 
 % update the above parameter based on your calculations
 % End Section 4.
@@ -203,7 +204,7 @@ Ensemble_bagging_MDL=fitensemble(X_train,Y_train,'Bag',100,'Tree','Type','classi
 %% Section 5 display confusion matrix on test set
 
 % Predict scores and predictions
-[prediction,scores] = predict(Ensemble_bagging_MDL,X_test);
+[prediction,scores] = predict(Ensemble_bagging_MDL,test_data);
 
 % use predict with Ensemble_bagging_MDL
 [confusion_mat,~] = confusionmat(Y_test,prediction)
@@ -211,10 +212,10 @@ Ensemble_bagging_MDL=fitensemble(X_train,Y_train,'Bag',100,'Tree','Type','classi
 disp('------------------------------------------')
 % End Section 5.
 
-%% Section 6 - Create final model for submission
+ %% Section 6 - Create final model for submission
 Final_data = X_norm(:,best_feature_list);
 
-Ensemble_bagging_MDL_4submission= fitensemble(Final_data,Y,'Bag',100,'Tree','Type','classification');
+Ensemble_bagging_MDL_4submission= fitcensemble(train_data,Y_train,'method','RUSBoost','NumLearningCycles',1000,'Learners',t,'LearnRate',0.1);
 % update the above parameter based on all data
 disp('------------------------------------------')
 % End Section 6.
@@ -222,25 +223,14 @@ disp('------------------------------------------')
 %% Visualization 
 
 close all
-% Visualize correlation between features
-figure()
-corrplot([X_norm Y],'type','Spearman','testR','on','varNames',[feature_names {'Labels'}])
-title('correlation between features - all lowly correlated features')
 
-% Visualize correlation of 2 best features
-figure()
-corrplot([X_norm(:,best_feature_list) Y],'type','Spearman','testR','on','varNames',[feature_names(best_feature_list) {'Labels'}])
-title('correlation between features - 2 best features')
-
-% Gplotmatrix - all features
+% Gplotmatrix - all used features
 figure()
 gplotmatrix(X_norm,[],Y)
-title('Gplotmatrix - all lowly correlated features')
+title('Gplotmatrix - features used in model')
 
 % Gplotmatrix - 2 best features
 figure()
-gplotmatrix(X_norm(:,best_feature_list),[], Y,[],[],[],[],[],feature_names(best_feature_list))
+gplotmatrix(X_norm(:,best_feature_list(1:2)),[], Y,[],[],[],[],[],feature_names(best_feature_list(1:2)))
 title('Gplotmatrix - 2 best features')
-
-
 
