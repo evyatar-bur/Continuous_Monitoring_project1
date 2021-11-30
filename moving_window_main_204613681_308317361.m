@@ -2,8 +2,8 @@
 clc 
 clear
 
-window_size = 20;   % Sec
-over_lap = 10;      % Sec
+window_size = 15;   % Sec
+over_lap = 7.5;      % Sec
 
 % Suppress readtable warning
 warning('off','MATLAB:table:ModifiedAndSavedVarnames')
@@ -12,10 +12,11 @@ warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 sample_rate=25;      
 
 d=dir('*.Acc.csv');
-X=zeros(50000,54)-99;    % Allocate memory for matrix X, with default value -99
+X=zeros(50000,72)-99;    % Allocate memory for matrix X, with default value -99
 Y=zeros(50000,1)-99;     % Allocate memory for label vector Y
 
 n_instance=0; % Window counter
+max_last_window=ones(1,6); %for first window features calc
 
 
 % make a filter and apply it to the signal
@@ -64,8 +65,8 @@ for r=1:length(d)
     % Compute features for each window
     for segment=1:n_segments
         ind=(segment-1)*over_lap*sample_rate+(1:(sample_rate*window_size));
-        X_row = extract_features_204613681_308317361(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
-        
+        X_row = extract_features_204613681_308317361(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind),max_last_window);
+        max_last_window=X_row([1 13 25 37 49 61]);
         n_instance=n_instance+1;
 
         X(n_instance,:) = X_row;

@@ -7,6 +7,8 @@ clear
 window_size = 20;   % Sec
 over_lap = 10;      % Sec
 
+max_last_window=ones(1,6); %for first window features calc
+
 tresh_diff=2.5;
 tresh_std=0.02;
 
@@ -17,7 +19,7 @@ warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 sample_rate = 25;      
 
 d=dir('*.Acc.csv');
-X_event=zeros(50000,54)-99;    % Allocate memory for matrix X, with default value -99
+X_event=zeros(50000,72)-99;    % Allocate memory for matrix X, with default value -99
 Y_event=zeros(50000,1)-99;     % Allocate memory for label vector Y
 Y_check=zeros(50000,1)-99;
 Y_Real=zeros(50000,1)-99;
@@ -80,7 +82,9 @@ for r=1:length(d)
         
         % If window values reach treshold, compute features
         if window_diff>tresh_diff && window_std>tresh_std
-            X_row = extract_features_204613681_308317361(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind));
+            X_row = extract_features_204613681_308317361(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind),max_last_window);
+            max_last_window=X_row([1 13 25 37 49 61]);
+            
             n_instance=n_instance+1;
 
             X_event(n_instance,:) = X_row;
