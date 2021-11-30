@@ -194,7 +194,7 @@ end
 train_data = X_train(:,best_feature_list);
 test_data = X_test(:,best_feature_list);
 
-t = templateTree('MaxNumSplits',1000);
+t = templateTree('MaxNumSplits',100);
 
 Ensemble_bagging_MDL=fitcensemble(train_data,Y_train,'method','RUSBoost','NumLearningCycles',1000,'Learners',t,'LearnRate',0.1);
 

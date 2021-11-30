@@ -55,7 +55,8 @@ end
 %else
 %    disp('Best AUC not improved - Do not add more features')
 
-
-disp(['best score - ',num2str(best_score)])
+if length(best_feature_list) > 2
+    disp(['best score - ',num2str(best_score)])
+end
 
 end
