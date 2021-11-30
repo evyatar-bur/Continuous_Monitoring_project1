@@ -200,6 +200,11 @@ disp(['The best AUC is: ',num2str(best_score)])
 disp('------------------------------------------')
 % End Section 2.b.
 
+%% Add more features
+for i = 1:4
+    [best_feature_list,best_score] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_score,method);
+end
+
 
 %% Section 2.c. display selected features
 
@@ -212,7 +217,9 @@ disp('------------------------------------------')
 train_data = X_train(:,best_feature_list);
 test_data = X_test(:,best_feature_list);
 
-Ensemble_bagging_MDL = fitcensemble(train_data,Y_training,'method','RUSBoost','NumLearningCycles',100,'Learners',t,'LearnRate',0.1);
+t = templateTree('MaxNumSplits',100);
+
+Ensemble_bagging_MDL = fitcensemble(train_data,Y_train,'method','RUSBoost','NumLearningCycles',100,'Learners',t,'LearnRate',0.1);
 
 % update the above parameter based on your calculations
 % End Section 4.
@@ -220,7 +227,7 @@ Ensemble_bagging_MDL = fitcensemble(train_data,Y_training,'method','RUSBoost','N
 %% Section 5 display confusion matrix on test set
 
 % Predict scores and predictions
-[prediction,scores] = predict(Ensemble_bagging_MDL,X_test);
+[prediction,scores] = predict(Ensemble_bagging_MDL,test_data);
 
 % use predict with Ensemble_bagging_MDL
 [confusion_mat,classes] = confusionmat(Y_test,prediction)
@@ -231,7 +238,7 @@ disp('------------------------------------------')
 %% Section 6 display confusion matrix on test set
 Final_data = X_norm(:,best_feature_list);
 
-Ensemble_bagging_MDL_4submission = fitcensemble(train_data,Y_training,'method','RUSBoost','NumLearningCycles',100,'Learners',t,'LearnRate',0.1);
+Ensemble_bagging_MDL_4submission = fitcensemble(train_data,Y_train,'method','RUSBoost','NumLearningCycles',100,'Learners',t,'LearnRate',0.1);
 % update the above parameter based on all data
 disp('------------------------------------------')
 % End Section 6.
