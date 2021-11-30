@@ -4,13 +4,11 @@
 clc 
 clear
 
-window_size = 20;   % Sec
-over_lap = 10;      % Sec
+window_size = 16;   % Sec
+
 
 max_last_window=ones(1,6); %for first window features calc
 
-tresh_diff=2.5;
-tresh_std=0.02;
 
 % Suppress readtable warning
 warning('off','MATLAB:table:ModifiedAndSavedVarnames')
@@ -21,11 +19,8 @@ sample_rate = 25;
 d=dir('*.Acc.csv');
 X_event=zeros(50000,72)-99;    % Allocate memory for matrix X, with default value -99
 Y_event=zeros(50000,1)-99;     % Allocate memory for label vector Y
-Y_check=zeros(50000,1)-99;
-Y_Real=zeros(50000,1)-99;
 
 n_instance=0; % Window counter
-n_instance_check = 0;
 
 %make a filter and apply it to the signal
 fco = 0.1;          % cutoff frequency (Hz)
@@ -66,32 +61,42 @@ for r=1:length(d)
         continue
     end
 
-    % Moving window with over lap Predetermined
-    n_segments=floor((N/sample_rate)/over_lap)-1;
-    
-    % Compute features for each window
-    for segment=1:n_segments
-        ind=(segment-1)*over_lap*sample_rate+(1:(sample_rate*window_size));
+    [~,locs]=findpeaks(gyro_x,'Threshold',15,'MinPeakDistance',200);    % event trigger decision
 
-        % Calculating values for event trigger decision
-        window_diff=sum(abs(diff(acc_x(ind))));
-        window_std=std(acc_x(ind));
+    for i= 1:length(locs)
+
+        min_ind = locs(i)-((window_size/2)*25);
+        max_ind = locs(i)+((window_size/2)*25);
         
-        n_instance_check=n_instance_check+1;
-        Y_check(n_instance_check) = 0;
+        ind = min_ind:max_ind;
+
+        if min_ind<1
+            ind = 1:window_size*25;
+        elseif max_ind>N
+            ind = N-window_size*25:N;
+        end
         
-        % If window values reach treshold, compute features
-        if window_diff>tresh_diff && window_std>tresh_std
+        if std(gyro_x(ind)) > 15    % If window values reach treshold, compute features
+
+            last_window_ind = ind-window_size*25;
+
+            if last_window_ind(1) > 0
+                max_last_window(1) = max(acc_x(last_window_ind));
+                max_last_window(2) = max(acc_y(last_window_ind));
+                max_last_window(3) = max(acc_z(last_window_ind));
+                max_last_window(4) = max(gyro_x(last_window_ind));
+                max_last_window(5) = max(gyro_y(last_window_ind));
+                max_last_window(6) = max(gyro_z(last_window_ind));
+            end
+
             X_row = extract_features_204613681_308317361(acc_x(ind),acc_y(ind),acc_z(ind),gyro_x(ind),gyro_y(ind),gyro_z(ind),max_last_window);
-            max_last_window=X_row([1 13 25 37 49 61]);
             
             n_instance=n_instance+1;
-
+    
             X_event(n_instance,:) = X_row;
             Y_event(n_instance) = label_segment(C,ind,N);
-            Y_check(n_instance_check) = 1;
+
         end
-        Y_Real(n_instance_check)=label_segment(C,ind,N);
     end
 end
 
@@ -99,11 +104,6 @@ end
 ind = find(Y_event~=-99);
 X_event = X_event(ind,:);
 Y_event = Y_event(ind,:);
-ind2=find(Y_Real~=-99);
-Y_Real=Y_Real(ind2,:);
-Y_check=Y_check(ind2,:);
-
-Y_Real(Y_Real ~= 0) = 1;
 
 
 %% Section 1.b. Features normalization/discretization remove outliers if needed
@@ -118,7 +118,7 @@ disp('------------------------------------------')
 
 % Devide data to test and train - 8 last records are test data
 
-cut_ind = floor(size(X_norm,1)*0.7);
+cut_ind = 833;
 
 % update the below sets
 X_train=X_norm(1:cut_ind,:);
@@ -130,12 +130,12 @@ Y_test=Y_event(cut_ind+1:end);
 
 %% Section 1.d. remove correlated features
 
-feature_names = {'max acc x','zero cross acc x','min acc x','diff acc x','std acc x','median acc x','bandpower acc x','iqr acc x','skewness a x',...
-    'max acc y','zero cross acc y','min acc y','diff acc y','std acc y','median acc y','bandpower acc y','iqr acc y','skewness a y',...
-    'max acc z','zero cross acc z','min acc z','diff acc z','std acc z','median acc z','bandpower acc z','iqr acc z','skewness a z',...
-    'max gyro x','zero cross gyro x','min gyro x','diff gyro x','std gyro x','median gyro x','bandpower gyro x','iqr gyro x','skewness g x',...
-    'max gyro y','zero cross gyro y','min gyro y','diff gyro y','std gyro y','median gyro y','bandpower gyro y','iqr gyro y','skewness g y',...
-    'max gyro z','zero cross gyro z','min gyro z','diff gyro z','std gyro z','median gyro z','bandpower gyro z','iqr gyro z','skewness g z'};
+feature_names = {'max acc x','zero cross acc x','min acc x','diff acc x','std acc x','median acc x','bandpower acc x','mean squared acc x','skewness a x','max/last window acc x','tresh 25% acc x','tresh const acc x',...
+    'max acc y','zero cross acc y','min acc y','diff acc y','std acc y','median acc y','bandpower acc y','mean squared acc y','skewness a y','max/last window acc y','tresh 25% acc y','tresh const acc y',...
+    'max acc z','zero cross acc z','min acc z','diff acc z','std acc z','median acc z','bandpower acc z','mean squared acc z','skewness a z','max/last window acc z','tresh 25% acc z','tresh const acc z',...
+    'max gyro x','zero cross gyro x','min gyro x','diff gyro x','std gyro x','median gyro x','bandpower gyro x','mean squared gyro x','skewness g x','max/last window gyro x','tresh 25% gyro x','tresh const gyro x',...
+    'max gyro y','zero cross gyro y','min gyro y','diff gyro y','std gyro y','median gyro y','bandpower gyro y','mean squared gyro y','skewness g y','max/last window gyro y','tresh 25% gyro y','tresh const gyro y',...
+    'max gyro z','zero cross gyro z','min gyro z','diff gyro z','std gyro z','median gyro z','bandpower gyro z','mean squared gyro z','skewness g z','max/last window gyro z','tresh 25% gyro z','tresh const gyro z'};
 
 Y_train_hat = (Y_train ~= 0);
 
@@ -203,6 +203,7 @@ disp('------------------------------------------')
 %% Add more features
 for i = 1:4
     [best_feature_list,best_score] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_score,method);
+    disp(['The second best feature is number: ',num2str(best_feature_list(end)),' - ',feature_names{best_feature_list(end)}])
 end
 
 

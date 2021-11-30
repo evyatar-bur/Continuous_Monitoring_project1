@@ -21,15 +21,15 @@ for i = 1:6
     features(start_ind+3) = sum(abs(diff(signal)));
     features(start_ind+4) = std(signal);
     features(start_ind+5) = median(abs(signal));
-    features(start_ind+6) = bandpower(signal,25,[0 12.5]);
+    features(start_ind+6) = bandpower(signal,25,[0 8]);
     features(start_ind+7) = mean(signal.^2);
     features(start_ind+8) = skewness(signal);
     features(start_ind+9) = max(signal)/max_last_window(i);
     features(start_ind+10) = sum(abs(signal)>0.25*max(signal));
     if i>3
-        features(start_ind+11) = sum(abs(signal)>10);
+        features(start_ind+11) = sum(abs(signal)>10)+rand(1);
     else
-        features(start_ind+11) = sum(abs(signal)>0.05);
+        features(start_ind+11) = sum(abs(signal)>0.05)+rand(1);
     end
 
 

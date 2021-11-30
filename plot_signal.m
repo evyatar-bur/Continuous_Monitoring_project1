@@ -1,8 +1,8 @@
 % clc
 % clear
-close all
+%close all
 
-Path = '15.6.Gyro.csv';
+Path = ['14.2.Gyro.csv'];
 
 % Read data from file
 [t,x,y,z] = read_data(Path);
@@ -17,7 +17,7 @@ else
 end
     
 % Plotting signals
-figure(1)
+figure()
 hold on
 
 plot(t,x)
@@ -39,7 +39,7 @@ Np=2;           %filter order=number of poles
 x_filt = filtfilt(b,a,x); %apply the filter to x(t)
 
 % Plotting signals
-figure(2)
+figure()
 hold on
 
 plot(t,x_filt)
