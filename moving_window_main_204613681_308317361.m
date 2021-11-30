@@ -15,7 +15,7 @@ d=dir('*.Acc.csv');
 X=zeros(50000,72)-99;    % Allocate memory for matrix X, with default value -99
 Y=zeros(50000,1)-99;     % Allocate memory for label vector Y
 
-n_instance=0; % Window counter
+n_instance = 0; % Window counter
 max_last_window=ones(1,6); %for first window features calc
 
 
@@ -25,10 +25,18 @@ Np = 2;           % filter order=number of poles
 
 [b,a]=butter(Np,fco/(sample_rate/2),'high'); %high pass Butterworth filter coefficients
 
+cut_flag = true;
+
 
 for r=1:length(d)
 
     disp(d(r).name)
+
+    if contains(d(r).name, '25') && cut_flag
+        
+        cut_flag = false;
+        cut_ind = n_instance;
+    end
 
     A=readtable(d(r).name);
     gyro_file=strrep(d(r).name,'Acc','Gyro');
@@ -92,10 +100,10 @@ disp('------------------------------------------')
 % Devide data to test and train - 8 last records are test data
 
 % update the below sets
-X_train=X_norm(1:34029,:);
-X_test=X_norm(34030:end,:);
-Y_train=Y(1:34029);
-Y_test=Y(34030:end);
+X_train=X_norm(1:42596,:);   % 34029 for 20 sec window/10 sec overlap
+X_test=X_norm(42597:end,:);
+Y_train=Y(1:42596);
+Y_test=Y(42597:end);
 
 % End Section 1.c.
 
@@ -176,7 +184,7 @@ disp('------------------------------------------')
 
 %% Add more features
 
-for i = 1:2
+for i = 1:4
 
     [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
 
@@ -197,7 +205,7 @@ test_data = X_test(:,best_feature_list);
 
 t = templateTree('MaxNumSplits',100);
 
-Ensemble_bagging_MDL=fitcensemble(train_data,Y_train,'method','RUSBoost','NumLearningCycles',1000,'Learners',t,'LearnRate',0.1);
+Ensemble_bagging_MDL=fitcensemble(train_data,Y_train,'method','RUSBoost','NumLearningCycles',100,'Learners',t,'LearnRate',0.1);
 
 % update the above parameter based on your calculations
 % End Section 4.
