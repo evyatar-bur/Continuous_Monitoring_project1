@@ -100,10 +100,10 @@ disp('------------------------------------------')
 % Devide data to test and train - 8 last records are test data
 
 % update the below sets
-X_train=X_norm(1:42596,:);   % 34029 for 20 sec window/10 sec overlap
-X_test=X_norm(42597:end,:);
-Y_train=Y(1:42596);
-Y_test=Y(42597:end);
+X_train=X_norm(1:cut_ind,:);   % 34029 for 20 sec window/10 sec overlap
+X_test=X_norm(cut_ind+1:end,:);
+Y_train=Y(1:cut_ind);
+Y_test=Y(cut_ind+1:end);
 
 % End Section 1.c.
 
