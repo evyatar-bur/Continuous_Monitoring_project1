@@ -122,7 +122,7 @@ Y_train_hat = (Y_train ~= 0);
 len = size(X_train,2);
 W = zeros(len,1);
 for j=1:len
-    [~,W(j)] = relieff(X_train(:,j),Y_train_hat,10);
+    [~,W(j)] = relieff(X_train(:,j),Y_train,10);
 end
 
 [~,ind] = sort(W,'descend');
@@ -187,6 +187,7 @@ disp('------------------------------------------')
 for i = 1:4
 
     [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
+    disp(['The new best feature is number: ',num2str(best_feature_list(end)),' - ',feature_names{best_feature_list(end)}])
 
 end
 
@@ -217,6 +218,9 @@ Ensemble_bagging_MDL=fitcensemble(train_data,Y_train,'method','RUSBoost','NumLea
 
 % use predict with Ensemble_bagging_MDL
 [confusion_mat,~] = confusionmat(Y_test,prediction)
+
+figure()
+confusionchart(Y_test,prediction,'Normalization','row-normalized','RowSummary','row-normalized')
 % update the above parameter based on your calculations
 disp('------------------------------------------')
 % End Section 5.
@@ -231,15 +235,15 @@ disp('------------------------------------------')
 
 %% Visualization 
 
-close all
-
-% Gplotmatrix - all used features
-figure()
-gplotmatrix(X_norm,[],Y)
-title('Gplotmatrix - features used in model')
-
-% Gplotmatrix - 2 best features
-figure()
-gplotmatrix(X_norm(:,best_feature_list(1:2)),[], Y,[],[],[],[],[],feature_names(best_feature_list(1:2)))
-title('Gplotmatrix - 2 best features')
+% close all
+% 
+% % Gplotmatrix - all used features
+% figure()
+% gplotmatrix(X_norm,[],Y)
+% title('Gplotmatrix - features used in model')
+% 
+% % Gplotmatrix - 2 best features
+% figure()
+% gplotmatrix(X_norm(:,best_feature_list(1:2)),[], Y,[],[],[],[],[],feature_names(best_feature_list(1:2)))
+% title('Gplotmatrix - 2 best features')
 
