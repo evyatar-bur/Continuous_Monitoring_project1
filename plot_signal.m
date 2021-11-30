@@ -2,7 +2,7 @@
 % clear
 close all
 
-Path = '24.6.Acc.csv';
+Path = '15.6.Gyro.csv';
 
 % Read data from file
 [t,x,y,z] = read_data(Path);
