@@ -118,7 +118,7 @@ disp('------------------------------------------')
 
 % Devide data to test and train - 8 last records are test data
 
-cut_ind = 833;
+cut_ind = 1108; %833 with threshold of findpeaks&std=20
 
 % update the below sets
 X_train=X_norm(1:cut_ind,:);
