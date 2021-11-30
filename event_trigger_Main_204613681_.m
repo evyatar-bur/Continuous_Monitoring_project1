@@ -28,9 +28,17 @@ Np = 2;           % filter order=number of poles
 
 [b,a]=butter(Np,fco/(sample_rate/2),'high'); %high pass Butterworth filter coefficients
 
+cut_flag = true;
+
 for r=1:length(d)
 
     disp(d(r).name)
+
+    if contains(d(r).name, '25') && cut_flag
+        
+        cut_flag = false;
+        cut_ind = n_instance;
+    end
     
     A=readtable(d(r).name);
     gyro_file=strrep(d(r).name,'Acc','Gyro');
@@ -76,7 +84,7 @@ for r=1:length(d)
             ind = N-window_size*25:N;
         end
         
-        if std(gyro_x(ind)) > 15    % If window values reach treshold, compute features
+        if std(gyro_x(ind)) > 20    % If window values reach treshold, compute features
 
             last_window_ind = ind-window_size*25;
 
@@ -118,7 +126,7 @@ disp('------------------------------------------')
 
 % Devide data to test and train - 8 last records are test data
 
-cut_ind = 1108; %833 with threshold of findpeaks&std=20
+% cut_ind = 1108; %833 with threshold of findpeaks&std=20
 
 % update the below sets
 X_train=X_norm(1:cut_ind,:);
@@ -201,7 +209,7 @@ disp('------------------------------------------')
 % End Section 2.b.
 
 %% Add more features
-for i = 1:4
+for i = 1:2
     [best_feature_list,best_score] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_score,method);
     disp(['The second best feature is number: ',num2str(best_feature_list(end)),' - ',feature_names{best_feature_list(end)}])
 end
