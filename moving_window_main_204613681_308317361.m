@@ -188,6 +188,8 @@ for i = 1:4
 
     [best_feature_list,best_AUC] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_AUC,method);
     disp(['The new best feature is number: ',num2str(best_feature_list(end)),' - ',feature_names{best_feature_list(end)}])
+    disp(['The best AUC is: ',num2str(best_AUC)])
+    disp('------------------------------------------')
 
 end
 
