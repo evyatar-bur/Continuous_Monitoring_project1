@@ -7,12 +7,8 @@ label = 0;
 min_time = ind(1)/25 -(ind(1)/N)*7 ;
 max_time = ind(end)/25 -(ind(1)/N)*3 ;
 
-% Sort column by names to overcome different column names
-head = (C.Properties.VariableNames);
-[~,sec_ind]=sort(head);
-
 % Use the correct column, containing action times
-action_times = C(:,sec_ind(3)).Variables; 
+action_times = event_times(C);
 labels = C.Label;
 
 % Check if window contains label

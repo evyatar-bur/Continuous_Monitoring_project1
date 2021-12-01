@@ -5,9 +5,12 @@ clc
 clear
 
 window_size = 16;   % Sec
+cut_flag = true;
 
+true_cell = cell(2,1000);
+check_cell = cell(2,1000);
 
-max_last_window=ones(1,6); %for first window features calc
+max_last_window=ones(1,6); % for first window features calc
 
 
 % Suppress readtable warning
@@ -20,22 +23,22 @@ d=dir('*.Acc.csv');
 X_event=zeros(50000,72)-99;    % Allocate memory for matrix X, with default value -99
 Y_event=zeros(50000,1)-99;     % Allocate memory for label vector Y
 
-n_instance=0; % Window counter
+n_instance=0;                  % Window counter
 
-%make a filter and apply it to the signal
-fco = 0.1;          % cutoff frequency (Hz)
-Np = 2;           % filter order=number of poles
+% make a High Pass Filter
+fco = 0.1;                     % cutoff frequency (Hz)
+Np = 2;                        % filter order=number of poles
 
-[b,a]=butter(Np,fco/(sample_rate/2),'high'); %high pass Butterworth filter coefficients
+[b,a]=butter(Np,fco/(sample_rate/2),'high'); 
 
-cut_flag = true;
 
 for r=1:length(d)
 
     disp(d(r).name)
+    
+    % Remember index for train/test partition
+    if contains(d(r).name, '25') && cut_flag 
 
-    if contains(d(r).name, '25') && cut_flag
-        
         cut_flag = false;
         cut_ind = n_instance;
     end
@@ -68,8 +71,12 @@ for r=1:length(d)
         disp(['Signal ignored - difference between signals is too large - ' d(r).name])
         continue
     end
-
-    [~,locs]=findpeaks(gyro_x,'Threshold',15,'MinPeakDistance',200);    % event trigger decision
+    
+    % Find suspected events for window
+    [~,locs]=findpeaks(gyro_x,'MinPeakHeight',15,'MinPeakDistance',250);  
+    
+    % Suspected times vector, for accuracy check 
+    suspected_times = [];
 
     for i= 1:length(locs)
 
@@ -84,7 +91,10 @@ for r=1:length(d)
             ind = N-window_size*25:N;
         end
         
-        if std(gyro_x(ind)) > 20    % If window values reach treshold, compute features
+        if std(acc_x(ind)) > 0.05    % If window values reach treshold, compute features
+            
+            % Save times of suspected windows
+            suspected_times(end+1) = locs(i)/25; 
 
             last_window_ind = ind-window_size*25;
 
@@ -106,12 +116,26 @@ for r=1:length(d)
 
         end
     end
+
+    true_cell{1,r} = d(r).name;
+    true_cell{2,r} = event_times(C);
+
+    check_cell{1,r} = d(r).name;
+    check_cell{2,r} = suspected_times;
+
 end
+
+% Delete empty cells
+true_cell(:,r+1:end) = [];
+check_cell(:,r+1:end) = [];
 
 % Delete empty rows
 ind = find(Y_event~=-99);
 X_event = X_event(ind,:);
 Y_event = Y_event(ind,:);
+
+% Check event detection
+[false_negetive,true_positive,bad_recordings] = check_event_detection(true_cell,check_cell);
 
 
 %% Section 1.b. Features normalization/discretization remove outliers if needed
@@ -264,11 +288,11 @@ close all
 
 % Gplotmatrix - all features
 figure()
-gplotmatrix(X_norm,[],Y_event)
-title('Gplotmatrix - all lowly correlated features')
+gplotmatrix(X_norm(:,best_feature_list),[],Y_event)
+title('Gplotmatrix - features that were used')
 
 % Gplotmatrix - 2 best features
 figure()
-gplotmatrix(X_norm(:,best_feature_list),[], Y_event,[],[],[],[],[],feature_names(best_feature_list))
+gplotmatrix(X_norm(:,best_feature_list(1:2)),[], Y_event,[],[],[],[],[],feature_names(best_feature_list(1:2)))
 title('Gplotmatrix - 2 best features')
 

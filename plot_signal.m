@@ -2,7 +2,7 @@
 % clear
 %close all
 
-Path = ['14.2.Gyro.csv'];
+Path = '9.8.Gyro.csv';
 
 % Read data from file
 [t,x,y,z] = read_data(Path);
