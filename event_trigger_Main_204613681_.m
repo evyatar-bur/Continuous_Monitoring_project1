@@ -241,6 +241,10 @@ Ensemble_bagging_MDL = fitcensemble(train_data,Y_train,'method','RUSBoost','NumL
 % use predict with Ensemble_bagging_MDL
 [confusion_mat,classes] = confusionmat(Y_test,prediction)
 % update the above parameter based on your calculations
+
+figure()
+confusionchart(Y_test,prediction,'Normalization','row-normalized','RowSummary','row-normalized')
+
 disp('------------------------------------------')
 % End Section 5.
 
