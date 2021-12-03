@@ -1,14 +1,9 @@
-clc 
-clear
+function [confusion_mat] = main(Path)
 
 window_size = 16;   % Sec
 cut_flag = true;
 
-true_cell = cell(2,1000);
-check_cell = cell(2,1000);
-
 max_last_window=ones(1,6); % for first window features calc
-
 
 % Suppress readtable warning
 warning('off','MATLAB:table:ModifiedAndSavedVarnames')
@@ -16,7 +11,8 @@ warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 %% Section 1.a : Iterate to load files, extract features, and build matrix
 sample_rate = 25;      
 
-d=dir('*.Acc.csv');
+d=dir(path + "\*.Acc.csv");
+
 X_event=zeros(50000,72)-99;    % Allocate memory for matrix X, with default value -99
 Y_event=zeros(50000,1)-99;     % Allocate memory for label vector Y
 
@@ -31,8 +27,6 @@ Np = 2;                        % filter order=number of poles
 
 for r=1:length(d)
 
-    disp(d(r).name)
-    
     % Remember index for train/test partition
     if contains(d(r).name, '25') && cut_flag 
 
@@ -292,3 +286,9 @@ figure()
 gplotmatrix(X_norm(:,best_feature_list(1:2)),[], Y_event,[],[],[],[],[],feature_names(best_feature_list(1:2)))
 title('Gplotmatrix - 2 best features')
 
+
+
+
+
+
+end

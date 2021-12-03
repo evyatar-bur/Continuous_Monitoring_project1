@@ -49,11 +49,7 @@ for i = 1:size(X_training,2)
     end
 end
 
-% Check if AUC improved significantly, if so - add best feature
-%if best_AUC-prev_best_AUC>0.0001
-    best_feature_list(end+1) = best_feature_ind;
-%else
-%    disp('Best AUC not improved - Do not add more features')
+best_feature_list(end+1) = best_feature_ind;
 
 if length(best_feature_list) > 2
     disp(['best score - ',num2str(best_score)])
