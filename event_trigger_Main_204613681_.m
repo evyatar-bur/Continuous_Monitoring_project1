@@ -70,7 +70,7 @@ for r=1:length(d)
     end
     
     % Find suspected events for window
-    [~,locs]=findpeaks(gyro_x,'MinPeakHeight',15,'MinPeakDistance',250);  
+    [~,locs] = findpeaks(gyro_x,'MinPeakHeight',15,'MinPeakDistance',250);  
     
     % Suspected times vector, for accuracy check 
     suspected_times = [];
@@ -230,7 +230,7 @@ disp('------------------------------------------')
 % End Section 2.b.
 
 %% Add more features
-for i = 1:4
+for i = 1:2
     [best_feature_list,best_score] = Add_feature(X_train,X_test,Y_train,Y_test,best_feature_list,best_score,method);
     disp(['The new best feature is number: ',num2str(best_feature_list(end)),' - ',feature_names{best_feature_list(end)}])
     disp('------------------------------------------')
@@ -261,11 +261,12 @@ Ensemble_bagging_MDL = fitcensemble(train_data,Y_train,'method','RUSBoost','NumL
 [prediction,scores] = predict(Ensemble_bagging_MDL,test_data);
 
 % use predict with Ensemble_bagging_MDL
-[confusion_mat,classes] = confusionmat(Y_test,prediction)
+confusion_mat = confusionmat(Y_test,prediction)
 % update the above parameter based on your calculations
 
 figure()
-confusionchart(Y_test,prediction,'Normalization','row-normalized','RowSummary','row-normalized')
+xvalues={'no event', 'scroll up', 'scroll down', 'on/off','noise', 'zoom in horizental','zoom in vertical','zoom out horizental','zoom out vertical'};
+confusionchart(confusion_mat,xvalues)
 
 disp('------------------------------------------')
 % End Section 5.
@@ -280,15 +281,15 @@ disp('------------------------------------------')
 
 
 
-%% Visualization 
-
-% Gplotmatrix - all features
-figure()
-gplotmatrix(X_norm(:,best_feature_list),[],Y_event)
-title('Gplotmatrix - features that were used')
-
-% Gplotmatrix - 2 best features
-figure()
-gplotmatrix(X_norm(:,best_feature_list(1:2)),[], Y_event,[],[],[],[],[],feature_names(best_feature_list(1:2)))
-title('Gplotmatrix - 2 best features')
+% %% Visualization 
+% 
+% % Gplotmatrix - all features
+% figure()
+% gplotmatrix(X_norm(:,best_feature_list),[],Y_event)
+% title('Gplotmatrix - features that were used')
+% 
+% % Gplotmatrix - 2 best features
+% figure()
+% gplotmatrix(X_norm(:,best_feature_list(1:2)),[], Y_event,[],[],[],[],[],feature_names(best_feature_list(1:2)))
+% title('Gplotmatrix - 2 best features')
 

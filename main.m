@@ -11,6 +11,7 @@ warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 %% Section 1.a : Iterate to load files, extract features, and build matrix
 sample_rate = 25;      
 
+cd 
 d=dir(path + "\*.Acc.csv");
 
 X_event=zeros(50000,72)-99;    % Allocate memory for matrix X, with default value -99

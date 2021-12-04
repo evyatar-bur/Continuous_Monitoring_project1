@@ -17,11 +17,11 @@ for i = 1:size(true_cell,2)
         event_count = event_count + 1;
         diff_vec = abs(suspected_times-true_time(j));
         
-        if sum(diff_vec<10) == 0
+        if sum(diff_vec<16) == 0
             false_negetive = false_negetive + 1;
 
             bad_recordings{1,end+1} = true_cell{1,i}; 
-            bad_recordings{2,end+1} = true_time; 
+            bad_recordings{2,end} = true_time; 
         end
     end
 end

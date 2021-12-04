@@ -4,7 +4,7 @@ function [label] = label_segment(C,ind,N)
 label = 0;
 
 % Time boundaries
-min_time = ind(1)/25 -(ind(1)/N)*7 ;
+min_time = ind(1)/25 -(ind(1)/N)*10 ;
 max_time = ind(end)/25 -(ind(1)/N)*3 ;
 
 % Use the correct column, containing action times
