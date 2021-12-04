@@ -50,9 +50,4 @@ for i = 1:size(X_training,2)
 end
 
 best_feature_list(end+1) = best_feature_ind;
-
-if length(best_feature_list) > 2
-    disp(['best score - ',num2str(best_score)])
-end
-
 end
